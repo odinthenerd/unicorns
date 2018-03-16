@@ -1,0 +1,62 @@
+#include<tuple>
+#include "/home/odinthenerd/git/mpl/src/kvasir/mpl/mpl.hpp"
+
+using namespace kvasir::mpl;
+using namespace kvasir::mpl;
+
+template<typename T, typename U>
+struct holdy{
+    U ref;
+};
+
+template<typename...Ts>
+struct derivey:Ts...{
+    template<typename...As>
+    constexpr derivey(As&&...as):Ts{std::forward<As>(as)}...{}
+};
+
+template<typename B, typename I>
+struct selecty;
+
+template<typename T, typename U, typename I>
+struct selecty<holdy<T,U>,I>{
+    static constexpr decltype(std::get<I::value>(static_cast<U>(U{}))) get(holdy<T,U>* t){
+        return std::get<I::value>(static_cast<U>(t->ref));
+    }
+};
+
+using make_2d_indexes = fork<
+    fork<
+        size<make_int_sequence<>>,
+        listify,
+        zip_with<cfe<holdy,cfe<list>>>>,
+    transform<
+        remove_reference<unpack<size<make_int_sequence<>>>>>,
+        zip_with<product<cfe<selecty>>,
+    join<>>>;
+using get_return = transform<unpack<listify>,join<cfe<std::tuple>>>;
+
+template<typename Ret, typename T, typename...Is>
+constexpr Ret cat_impl(T* t, list<Is...>){
+    return Ret{Is::get(t)...};
+}
+
+template<typename...Ts>
+constexpr call<get_return,Ts...> cat(Ts&&...as){
+    call<
+        fork<
+            size<make_int_sequence<>>,
+            listify,
+            zip_with<cfe<holdy>,cfe<derivey>>>,
+        decltype(as)...> refs(std::forward<Ts>(as)...);
+    return cat_impl<call<get_return,Ts...>>(&refs, call<make_2d_indexes,decltype(as)...>{});
+}
+template<typename...Ts>
+void f(Ts...){}
+int main() {
+    f(std::tuple<int_<<%= (1..n).to_a.join('>>{}, std::tuple<int_<') %>>>{}); //single tuples exist in both cases
+    std::tuple<int_<<%= (1..n).to_a.join('>, int_<') %>>>{};                     //result tuple exists in both cases
+#if defined(METABENCH)
+    cat(std::tuple<int_<<%= (1..n).to_a.join('>>{}, std::tuple<int_<') %>>>{});
+#endif
+}

@@ -1,0 +1,12 @@
+#include<tuple>
+template<typename...Ts>
+void f(Ts...){}
+template<int N>
+struct int_{};
+int main() {
+    f(std::tuple<int_<<%= (1..n).to_a.join('>>{}, std::tuple<int_<') %>>>{}); //single tuples exist in both cases
+    std::tuple<int_<<%= (1..n).to_a.join('>, int_<') %>>>{};                     //result tuple exists in both cases
+#if defined(METABENCH)
+    std::tuple_cat(std::tuple<int_<<%= (1..n).to_a.join('>>{}, std::tuple<int_<') %>>>{});
+#endif
+}
